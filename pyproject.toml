@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jiujiang-vendor-risk-agents"
+version = "0.1.0"
+description = "银行外包供应商动态风险预测与多智能体协同工程骨架"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "langgraph>=0.2,<2",
+  "pydantic>=2.7,<3",
+  "pydantic-settings>=2.2,<3",
+  "python-dotenv>=1.0,<2",
+  "openai>=1.40,<3",
+]
+
+[project.optional-dependencies]
+ml = [
+  "numpy>=1.26,<3",
+  "pandas>=2.2,<3",
+  "scikit-learn>=1.4,<2",
+  "xgboost>=2.0,<4",
+  "shap>=0.45,<1",
+]
+docs = [
+  "python-docx>=1.1,<2",
+  "pypdf>=4,<7",
+]
+dev = [
+  "pytest>=8,<9",
+  "pytest-cov>=5,<8",
+]
+
+[project.scripts]
+jiujiang = "app.main:main"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
