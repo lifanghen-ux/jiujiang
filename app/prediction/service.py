@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from app.schemas.contracts import PredictionResult
 
 
@@ -18,3 +21,29 @@ class MockPredictionService:
             model_status="MOCK",
         )
 
+
+class TrainedPredictionService:
+    def __init__(self, *, model_path: Path, metadata_path: Path) -> None:
+        import joblib
+
+        if not model_path.exists() or not metadata_path.exists():
+            raise FileNotFoundError("Trained model artifact or metadata is missing; run the training command first")
+        self.model = joblib.load(model_path)
+        self.metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        self.feature_columns = self.metadata["feature_columns"]
+        self.threshold = float(self.metadata["champion_threshold"])
+
+    def predict_features(self, features: dict[str, float]) -> PredictionResult:
+        import pandas as pd
+
+        missing = [name for name in self.feature_columns if name not in features]
+        if missing:
+            raise ValueError(f"Missing model features: {missing}")
+        frame = pd.DataFrame([{name: features[name] for name in self.feature_columns}])
+        probability = float(self.model.predict_proba(frame)[:, 1][0])
+        return PredictionResult(
+            pred_upgrade_label=int(probability >= self.threshold),
+            upgrade_probability=round(probability, 6),
+            model_version=f"{self.metadata['champion_model']}-simulation-v0.1",
+            model_status="TRAINED",
+        )

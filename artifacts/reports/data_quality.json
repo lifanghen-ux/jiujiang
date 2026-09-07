@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "row_counts": {
+    "suppliers.csv": 200,
+    "contracts.csv": 200,
+    "projects.csv": 200,
+    "bank_systems.csv": 200,
+    "risk_events.csv": 539,
+    "rectify_records.csv": 40,
+    "weekly_snapshot.csv": 10400
+  },
+  "duplicate_counts": {
+    "supplier_id": 0,
+    "contract_id": 0,
+    "project_id": 0,
+    "system_id": 0,
+    "evidence_id": 0,
+    "rectify_id": 0,
+    "supplier_week": 0
+  },
+  "foreign_key_error_counts": {
+    "contracts.supplier_id": 0,
+    "events.supplier_id": 0,
+    "rectifies.supplier_id": 0,
+    "weekly.supplier_id": 0,
+    "projects.contract_id": 0,
+    "systems.project_id": 0
+  },
+  "weekly_rows_per_supplier": [
+    52
+  ],
+  "label_counts": {
+    "0": 10130,
+    "1": 270
+  },
+  "positive_rate": 0.025961538461538463,
+  "event_categories": [
+    "人员",
+    "合规",
+    "安全",
+    "履约",
+    "经营",
+    "舆情"
+  ],
+  "calculation_mismatches": {
+    "event_count": 0,
+    "risk_score": 0,
+    "has_rectify": 0,
+    "upgrade_label": 0
+  }
+}

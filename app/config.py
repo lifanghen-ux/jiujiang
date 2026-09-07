@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     max_output_chars: int = Field(default=8000, ge=100, le=100000)
     knowledge_dir: Path = Path("data/knowledge")
     vector_index_path: Path = Path("data/index/vector_index.json")
+    source_data_dir: Path = Path("data/source")
+    model_artifact_path: Path = Path("artifacts/models/champion.joblib")
+    model_metadata_path: Path = Path("artifacts/reports/model_metadata.json")
     workflow_version: str = "0.1.0-draft"
     model_version: str = "mock-untrained"
     prompt_version: str = "0.1.0-draft"
@@ -27,4 +30,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

@@ -1,0 +1,66 @@
+[
+  {
+    "feature": "weeks_since_last_event",
+    "mean_abs_shap": 2.3666446208953857
+  },
+  {
+    "feature": "risk_score_slope_4w",
+    "mean_abs_shap": 1.6196144819259644
+  },
+  {
+    "feature": "business_exposure",
+    "mean_abs_shap": 1.5441725254058838
+  },
+  {
+    "feature": "risk_score_mean_8w",
+    "mean_abs_shap": 0.9783383011817932
+  },
+  {
+    "feature": "event_count_4w",
+    "mean_abs_shap": 0.31133025884628296
+  },
+  {
+    "feature": "risk_score",
+    "mean_abs_shap": 0.289058119058609
+  },
+  {
+    "feature": "event_count_8w",
+    "mean_abs_shap": 0.28349608182907104
+  },
+  {
+    "feature": "risk_score_mean_4w",
+    "mean_abs_shap": 0.10949191451072693
+  },
+  {
+    "feature": "severity_sum_4w",
+    "mean_abs_shap": 0.036006759852170944
+  },
+  {
+    "feature": "severity_max_4w",
+    "mean_abs_shap": 0.00588163360953331
+  },
+  {
+    "feature": "risk_score_delta_1w",
+    "mean_abs_shap": 0.003234376199543476
+  },
+  {
+    "feature": "event_count_1w",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "high_severity_count_4w",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "category_count_4w",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "cross_category_count_4w",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "has_rectify",
+    "mean_abs_shap": 0.0
+  }
+]

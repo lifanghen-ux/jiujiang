@@ -10,3 +10,5 @@ logs/*.log
 data/index/*.json
 artifacts/models/*
 !artifacts/models/.gitkeep
+artifacts/features/*
+!artifacts/features/.gitkeep

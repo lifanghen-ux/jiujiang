@@ -2,11 +2,11 @@
 
 ## 成员 B 梁雨珊
 
-- [ ] 正式 CSV 输出时间、目录和版本；
-- [ ] `weekly_snapshot.csv` 最终字段、类型与主键；
-- [ ] `risk_events.csv` 是否完整包含 evidence、severity、category、week；
-- [ ] `upgrade_label` 是否由脚本严格按 t+1 至 t+3 生成；
-- [ ] rolling window、SLA、延期和关键人员字段的原始数据支持情况。
+- [ ] 确认 2026-09-07 收到的 7 张 CSV 是否作为正式模拟数据 V1；成员 C 自检已通过；
+- [ ] 确认 `weekly_snapshot.csv` 当前 7 个字段是否为最终接口版本；成员 C 已验证 `(supplier_id, week)` 无重复；
+- [ ] 确认 `risk_events.csv` 当前 7 个字段是否为最终接口版本；现有 evidence、severity、category、week 均非空；
+- [ ] 复核 `upgrade_label` 生成口径；成员 C 按 t+1 至 t+3 全量重算，10,400 行零差异；
+- [ ] 决定是否补充 SLA、延期和关键人员等原始字段；当前数据只能实现事件、分值、整改和业务暴露相关特征。
 
 ## 赵文雅
 
@@ -23,4 +23,3 @@
 - [ ] “管理”是否加入正式风险类别；
 - [ ] `agent_judge_log` 与 `agent_reason_log` 的职责；
 - [ ] 正式 Agent JSON schema 版本。
-

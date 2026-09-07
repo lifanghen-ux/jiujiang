@@ -1,0 +1,17 @@
+﻿feature,mean_abs_shap
+weeks_since_last_event,2.3666446208953857
+risk_score_slope_4w,1.6196144819259644
+business_exposure,1.5441725254058838
+risk_score_mean_8w,0.9783383011817932
+event_count_4w,0.31133025884628296
+risk_score,0.289058119058609
+event_count_8w,0.28349608182907104
+risk_score_mean_4w,0.10949191451072693
+severity_sum_4w,0.036006759852170944
+severity_max_4w,0.00588163360953331
+risk_score_delta_1w,0.003234376199543476
+event_count_1w,0.0
+high_severity_count_4w,0.0
+category_count_4w,0.0
+cross_category_count_4w,0.0
+has_rectify,0.0

@@ -1,0 +1,69 @@
+{
+  "created_at": "2026-09-07T05:22:04.735695+00:00",
+  "data_scope": "200 simulated suppliers, 52 weeks each",
+  "feature_columns": [
+    "risk_score",
+    "event_count_1w",
+    "event_count_4w",
+    "event_count_8w",
+    "severity_sum_4w",
+    "severity_max_4w",
+    "high_severity_count_4w",
+    "risk_score_delta_1w",
+    "risk_score_slope_4w",
+    "risk_score_mean_4w",
+    "risk_score_mean_8w",
+    "category_count_4w",
+    "cross_category_count_4w",
+    "weeks_since_last_event",
+    "has_rectify",
+    "business_exposure"
+  ],
+  "split_summary": {
+    "train": {
+      "week_range": [
+        1,
+        26
+      ],
+      "rows": 5200,
+      "positive_rows": 136,
+      "positive_rate": 0.026153846153846153
+    },
+    "validation": {
+      "week_range": [
+        27,
+        34
+      ],
+      "rows": 1600,
+      "positive_rows": 94,
+      "positive_rate": 0.05875
+    },
+    "test": {
+      "week_range": [
+        35,
+        44
+      ],
+      "rows": 2000,
+      "positive_rows": 40,
+      "positive_rate": 0.02
+    },
+    "tail_not_scored": {
+      "week_range": [
+        45,
+        52
+      ],
+      "rows": 1600,
+      "positive_rows": 0,
+      "positive_rate": 0.0
+    }
+  },
+  "selection_metric": "validation_pr_auc",
+  "champion_model": "xgboost",
+  "champion_threshold": 0.9500000000000002,
+  "model_status": "TRAINED_SIMULATION",
+  "limitations": [
+    "Synthetic competition data only",
+    "Weeks after 44 are excluded from performance scoring because they contain no positive labels",
+    "Formal API and risk-level thresholds remain pending team review"
+  ]
+}

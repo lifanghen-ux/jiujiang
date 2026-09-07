@@ -11,11 +11,12 @@ class WorkflowState(TypedDict, total=False):
     business_context: dict[str, Any]
     association_result: dict[str, Any]
     features: dict[str, float]
+    model_features: dict[str, float]
     prediction: dict[str, Any]
+    prediction_source: str
     risk_trend: dict[str, Any]
     evidence_result: dict[str, Any]
     candidate_actions: list[dict[str, Any]]
     status: str
     errors: Annotated[list[str], operator.add]
     audit_trace: Annotated[list[dict[str, Any]], operator.add]
-
