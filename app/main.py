@@ -8,6 +8,7 @@ from app.config import get_settings
 from app.demo import load_mock_events, run_demo, run_real_data_demo
 from app.prediction.label_builder import build_upgrade_labels
 from app.rag.service import RAGService
+from app.schemas.output_contract import build_public_assessment
 
 
 def _print(payload) -> None:
@@ -18,12 +19,7 @@ def _print(payload) -> None:
 
 def command_demo() -> None:
     result = run_demo()
-    public_result = {
-        key: value
-        for key, value in result.items()
-        if key not in {"events", "visible_events", "business_context"}
-    }
-    _print(public_result)
+    _print(build_public_assessment(result))
 
 
 def command_rag_demo() -> None:
@@ -62,23 +58,19 @@ def command_rollback_model() -> None:
 def command_real_data_demo() -> None:
     settings = get_settings()
     result = run_real_data_demo(source_dir=settings.source_data_dir)
-    public_result = {
-        key: value
-        for key, value in result.items()
-        if key not in {"events", "visible_events", "business_context", "model_features"}
-    }
-    _print(public_result)
+    _print(build_public_assessment(result))
 
 
 def command_real_data_demo_live() -> None:
     settings = get_settings()
     result = run_real_data_demo(source_dir=settings.source_data_dir, enable_live_llm=True)
-    public_result = {
-        key: value
-        for key, value in result.items()
-        if key not in {"events", "visible_events", "business_context", "model_features", "policy_context"}
-    }
-    _print(public_result)
+    _print(build_public_assessment(result))
+
+
+def command_export_contracts() -> None:
+    from app.schemas.export import export_contract_schemas
+
+    _print({"schema_version": "C-DRAFT-V0.2", "files": [str(path) for path in export_contract_schemas()]})
 
 
 def main() -> None:
@@ -91,6 +83,7 @@ def main() -> None:
             "label-demo",
             "train",
             "rollback-model",
+            "export-contracts",
             "real-data-demo",
             "real-data-demo-live",
         ),
@@ -106,6 +99,7 @@ def main() -> None:
         "label-demo": command_label_demo,
         "train": command_train,
         "rollback-model": command_rollback_model,
+        "export-contracts": command_export_contracts,
         "real-data-demo": command_real_data_demo,
         "real-data-demo-live": command_real_data_demo_live,
     }[args.command]()

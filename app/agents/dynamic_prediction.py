@@ -32,9 +32,20 @@ def dynamic_prediction_node(state: dict) -> dict:
         prediction_source = "MOCK_FALLBACK"
         risk_components = {
             "risk_mode": "GRADUAL_WARNING" if prediction.pred_upgrade_label else "STABLE",
-            "gradual_upgrade": prediction.model_dump(),
-            "sudden_current": {"red_line_detected": False, "meaning": "Mock 模式不执行红线检测"},
-            "recovery": {"rectify_active": False, "improving": False},
+            "gradual_upgrade": {
+                "pred_upgrade_label": prediction.pred_upgrade_label,
+                "upgrade_probability": prediction.upgrade_probability,
+            },
+            "sudden_current": {
+                "red_line_detected": False,
+                "current_max_severity": 0.0,
+                "meaning": "Mock 模式不执行红线检测",
+            },
+            "recovery": {
+                "rectify_active": False,
+                "improving": False,
+                "risk_score_delta_1w": 0.0,
+            },
         }
     evidence_ids = [event["evidence_id"] for event in visible[-5:]]
     trend_type = {

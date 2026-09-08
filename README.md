@@ -5,7 +5,7 @@
 - LangGraph 多 Agent 协同流程；
 - 大模型统一调用、结构化输出校验、重试与 fallback；
 - RAG 文档加载、切分、索引与可追溯检索；
-- 未来 3 周风险升级标签、32 项历史特征和三类候选模型；
+- 未来 3 周风险升级标签、32 项历史特征、8 项可选领先指标和三类候选模型；
 - 200 家模拟供应商数据的质量检查、SHAP 全局解释；
 - 滚动时间验证、概率校准、候选晋级及一键回滚；
 - Mock、训练模型、训练模型 + DeepSeek 三条端到端演示链路及单元测试。
@@ -82,6 +82,9 @@ python -m app.main real-data-demo-live
 # 恢复最近一次晋级前的模型、指标和 SHAP 解释
 python -m app.main rollback-model
 
+# 重新导出成员 C 的 V0.2 输出及人工复核 JSON Schema
+python -m app.main export-contracts
+
 # 执行测试
 python -m pytest
 ```
@@ -102,6 +105,7 @@ data/
 ├─ mock/         # 虚构测试数据
 ├─ source/       # 200 家供应商的全量模拟源数据
 └─ index/        # 本地索引（默认不提交）
+scripts/          # 可复现的模拟领先指标生成程序
 artifacts/
 ├─ features/     # 运行 train 后生成，不提交 Git
 ├─ models/       # 运行 train 后生成，不提交 Git
@@ -129,6 +133,8 @@ tests/           # 单元及端到端测试
 - 全组：正式 API 新字段及业务规则变更。
 
 详细待复核项见 [docs/pending_reviews.md](docs/pending_reviews.md)。
+
+成员 C 当前输出契约版本为 `C-DRAFT-V0.2`，机器可读文件位于 `docs/contracts/`。人工复核结果暂由本地适配器验证和保存，成员 B 接口就绪后应替换为数据库事务。
 
 ## 7. 免责声明
 

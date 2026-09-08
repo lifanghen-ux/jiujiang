@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-09-08T02:28:07.382490+00:00",
+  "created_at": "2026-09-08T06:27:32.425799+00:00",
   "data_scope": "200 simulated suppliers, 52 weeks each",
   "feature_columns": [
     "risk_score",
@@ -33,8 +33,33 @@
     "category_security_4w",
     "category_operation_4w",
     "category_compliance_4w",
-    "category_sentiment_4w"
+    "category_sentiment_4w",
+    "leading_indicators_available",
+    "sla_compliance_rate",
+    "overdue_days",
+    "critical_staff_turnover_rate",
+    "unresolved_ticket_count",
+    "system_availability_rate",
+    "complaint_count",
+    "negative_sentiment_count"
   ],
+  "leading_indicator_features": [
+    "leading_indicators_available",
+    "sla_compliance_rate",
+    "overdue_days",
+    "critical_staff_turnover_rate",
+    "unresolved_ticket_count",
+    "system_availability_rate",
+    "complaint_count",
+    "negative_sentiment_count"
+  ],
+  "leading_indicators": {
+    "status": "PASS_SIMULATED",
+    "rows": 10400,
+    "simulation_versions": [
+      "LEADING-SIM-V0.1"
+    ]
+  },
   "split_summary": {
     "train": {
       "week_range": [
@@ -76,8 +101,8 @@
   "selection_metric": "rolling_mean_pr_auc_minus_0.25_std",
   "threshold_metric": "rolling_validation_f2",
   "calibration": "isotonic_on_pooled_rolling_out_of_time_predictions",
-  "champion_model": "xgboost",
-  "champion_threshold": 0.28,
+  "champion_model": "random_forest",
+  "champion_threshold": 0.3,
   "model_status": "CANDIDATE_SIMULATION",
   "risk_separation": {
     "gradual_upgrade": "machine-learning probability for the next three weeks",
@@ -91,7 +116,8 @@
   ],
   "limitations": [
     "Synthetic competition data only",
-    "Sudden samples lack observable precursor fields and cannot be reliably predicted in advance",
+    "Leading indicators are generated from synthetic scenario rules and are not bank observations",
+    "Forty percent of sudden suppliers intentionally retain no observable precursors",
     "Weeks after 44 are excluded from performance scoring because they contain no positive labels",
     "Formal API, business thresholds and rollback authority remain pending team review"
   ]

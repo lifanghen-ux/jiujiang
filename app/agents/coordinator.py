@@ -1,4 +1,5 @@
 from app.agents.helpers import trace
+from app.schemas.output_contract import OUTPUT_SCHEMA_VERSION
 
 
 def coordinator_node(state: dict) -> dict:
@@ -12,6 +13,6 @@ def coordinator_node(state: dict) -> dict:
         }
     return {
         "status": "RUNNING",
-        "audit_trace": trace("Coordinator", "PASS", detail="draft workflow accepted"),
+        "output_schema_version": OUTPUT_SCHEMA_VERSION,
+        "audit_trace": trace("Coordinator", "PASS", detail=f"output_schema={OUTPUT_SCHEMA_VERSION}"),
     }
-

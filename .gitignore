@@ -13,3 +13,5 @@ artifacts/models/*
 artifacts/features/*
 !artifacts/features/.gitkeep
 artifacts/reports/rollback/
+artifacts/reviews/*.jsonl
+.artifact-verify/

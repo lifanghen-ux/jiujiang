@@ -1,75 +1,111 @@
 [
   {
+    "feature": "overdue_days",
+    "mean_abs_shap": 1.4010460376739502
+  },
+  {
     "feature": "risk_score_mean_8w",
-    "mean_abs_shap": 1.3260340690612793
-  },
-  {
-    "feature": "business_exposure",
-    "mean_abs_shap": 1.2994486093521118
-  },
-  {
-    "feature": "weeks_since_last_event",
-    "mean_abs_shap": 1.0911407470703125
+    "mean_abs_shap": 1.223719835281372
   },
   {
     "feature": "event_count_lifetime",
-    "mean_abs_shap": 1.0098423957824707
+    "mean_abs_shap": 1.158336877822876
   },
   {
-    "feature": "event_count_acceleration_4w",
-    "mean_abs_shap": 0.9918773174285889
+    "feature": "sla_compliance_rate",
+    "mean_abs_shap": 0.7667574882507324
+  },
+  {
+    "feature": "business_exposure",
+    "mean_abs_shap": 0.730864405632019
   },
   {
     "feature": "risk_score_slope_4w",
-    "mean_abs_shap": 0.8281764984130859
-  },
-  {
-    "feature": "severity_sum_8w",
-    "mean_abs_shap": 0.3398379385471344
+    "mean_abs_shap": 0.7197666764259338
   },
   {
     "feature": "project_stage_code",
-    "mean_abs_shap": 0.3062973618507385
+    "mean_abs_shap": 0.5508456826210022
   },
   {
-    "feature": "category_performance_4w",
-    "mean_abs_shap": 0.23124118149280548
+    "feature": "system_availability_rate",
+    "mean_abs_shap": 0.46695074439048767
   },
   {
-    "feature": "risk_score",
-    "mean_abs_shap": 0.21177922189235687
+    "feature": "critical_staff_turnover_rate",
+    "mean_abs_shap": 0.37966230511665344
   },
   {
-    "feature": "severity_sum_lifetime",
-    "mean_abs_shap": 0.15017971396446228
+    "feature": "complaint_count",
+    "mean_abs_shap": 0.32560279965400696
+  },
+  {
+    "feature": "event_count_acceleration_4w",
+    "mean_abs_shap": 0.3208779990673065
   },
   {
     "feature": "risk_score_mean_4w",
-    "mean_abs_shap": 0.07632195949554443
+    "mean_abs_shap": 0.3142332136631012
+  },
+  {
+    "feature": "category_performance_4w",
+    "mean_abs_shap": 0.24976295232772827
   },
   {
     "feature": "event_count_4w",
-    "mean_abs_shap": 0.06872887909412384
+    "mean_abs_shap": 0.20081864297389984
   },
   {
-    "feature": "event_count_8w",
-    "mean_abs_shap": 0.0353720560669899
+    "feature": "weeks_since_last_event",
+    "mean_abs_shap": 0.19873647391796112
+  },
+  {
+    "feature": "severity_sum_8w",
+    "mean_abs_shap": 0.17990642786026
+  },
+  {
+    "feature": "unresolved_ticket_count",
+    "mean_abs_shap": 0.17134572565555573
+  },
+  {
+    "feature": "risk_score",
+    "mean_abs_shap": 0.05005855858325958
+  },
+  {
+    "feature": "severity_sum_lifetime",
+    "mean_abs_shap": 0.04236660897731781
   },
   {
     "feature": "system_level_score",
-    "mean_abs_shap": 0.020530270412564278
-  },
-  {
-    "feature": "contract_importance_score",
-    "mean_abs_shap": 0.015130485408008099
+    "mean_abs_shap": 0.02359839901328087
   },
   {
     "feature": "severity_sum_4w",
-    "mean_abs_shap": 0.014329410158097744
+    "mean_abs_shap": 0.02057058922946453
   },
   {
     "feature": "severity_max_4w",
-    "mean_abs_shap": 0.0025865568313747644
+    "mean_abs_shap": 0.005869945045560598
+  },
+  {
+    "feature": "category_security_4w",
+    "mean_abs_shap": 0.005240732338279486
+  },
+  {
+    "feature": "negative_sentiment_count",
+    "mean_abs_shap": 0.0023219026625156403
+  },
+  {
+    "feature": "category_operation_4w",
+    "mean_abs_shap": 0.0019742115400731564
+  },
+  {
+    "feature": "category_personnel_4w",
+    "mean_abs_shap": 0.0011806745314970613
+  },
+  {
+    "feature": "event_count_8w",
+    "mean_abs_shap": 0.0011101614218205214
   },
   {
     "feature": "event_count_1w",
@@ -108,15 +144,7 @@
     "mean_abs_shap": 0.0
   },
   {
-    "feature": "category_personnel_4w",
-    "mean_abs_shap": 0.0
-  },
-  {
-    "feature": "category_security_4w",
-    "mean_abs_shap": 0.0
-  },
-  {
-    "feature": "category_operation_4w",
+    "feature": "contract_importance_score",
     "mean_abs_shap": 0.0
   },
   {
@@ -125,6 +153,10 @@
   },
   {
     "feature": "category_sentiment_4w",
+    "mean_abs_shap": 0.0
+  },
+  {
+    "feature": "leading_indicators_available",
     "mean_abs_shap": 0.0
   }
 ]

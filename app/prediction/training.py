@@ -27,7 +27,9 @@ from xgboost import XGBClassifier
 
 from app.prediction.calibration import CalibratedRiskModel
 from app.prediction.dataset import (
+    BASE_FEATURE_COLUMNS,
     FEATURE_COLUMNS,
+    LEADING_FEATURE_COLUMNS,
     build_feature_frame,
     load_source_tables,
     rolling_origin_splits,
@@ -125,14 +127,18 @@ def _fresh_model(name: str, labels: pd.Series, random_state: int = 42) -> object
     return _build_models(positive_weight, random_state=random_state)[name]
 
 
-def _rolling_validation(name: str, features: pd.DataFrame) -> tuple[object, float, dict]:
+def _rolling_validation(
+    name: str,
+    features: pd.DataFrame,
+    feature_columns: list[str] = FEATURE_COLUMNS,
+) -> tuple[object, float, dict]:
     pooled_labels: list[int] = []
     pooled_raw_probabilities: list[float] = []
     fold_reports: list[dict] = []
     for fold_number, (fold_name, fold_train, fold_validation) in enumerate(rolling_origin_splits(features), start=1):
         model = _fresh_model(name, fold_train["upgrade_label"], random_state=41 + fold_number)
-        model.fit(fold_train[FEATURE_COLUMNS], fold_train["upgrade_label"])
-        raw_probability = model.predict_proba(fold_validation[FEATURE_COLUMNS])[:, 1]
+        model.fit(fold_train[feature_columns], fold_train["upgrade_label"])
+        raw_probability = model.predict_proba(fold_validation[feature_columns])[:, 1]
         pooled_labels.extend(fold_validation["upgrade_label"].astype(int).tolist())
         pooled_raw_probabilities.extend(raw_probability.astype(float).tolist())
         fold_reports.append(
@@ -401,10 +407,40 @@ def train_all(
         report_dir / "candidate_shap_global.csv",
     )
 
+    baseline_calibrator, baseline_threshold, baseline_rolling = _rolling_validation(
+        "xgboost", features, BASE_FEATURE_COLUMNS
+    )
+    baseline_estimator = _fresh_model("xgboost", development["upgrade_label"])
+    baseline_estimator.fit(development[BASE_FEATURE_COLUMNS], development["upgrade_label"])
+    baseline_model = CalibratedRiskModel(estimator=baseline_estimator, calibrator=baseline_calibrator)
+    baseline_probability = baseline_model.predict_proba(test[BASE_FEATURE_COLUMNS])[:, 1]
+    leading_ablation = {
+        "purpose": "SIMULATED_CAPABILITY_EXPERIMENT_NOT_PRODUCTION_EVIDENCE",
+        "baseline_without_leading_indicators": {
+            "feature_count": len(BASE_FEATURE_COLUMNS),
+            "rolling_validation": baseline_rolling,
+            "test": _metrics(test["upgrade_label"], baseline_probability, baseline_threshold),
+            "test_scenarios": _scenario_slices(test, baseline_probability, baseline_threshold),
+        },
+        "with_simulated_leading_indicators": {
+            "feature_count": len(FEATURE_COLUMNS),
+            "leading_features": LEADING_FEATURE_COLUMNS,
+            "rolling_validation": rolling_results["xgboost"],
+            "test": results["xgboost"]["test"],
+            "test_scenarios": results["xgboost"]["test_scenarios"],
+        },
+        "warning": (
+            "Leading signals were generated from synthetic scenario rules. This comparison only tests whether the "
+            "pipeline can use such fields; it does not prove performance on bank data."
+        ),
+    }
+
     candidate_metadata = {
         "created_at": datetime.now(timezone.utc).isoformat(),
         "data_scope": "200 simulated suppliers, 52 weeks each",
         "feature_columns": FEATURE_COLUMNS,
+        "leading_indicator_features": LEADING_FEATURE_COLUMNS,
+        "leading_indicators": quality["leading_indicators"],
         "split_summary": split_summary,
         "selection_metric": "rolling_mean_pr_auc_minus_0.25_std",
         "threshold_metric": "rolling_validation_f2",
@@ -424,7 +460,8 @@ def train_all(
         ],
         "limitations": [
             "Synthetic competition data only",
-            "Sudden samples lack observable precursor fields and cannot be reliably predicted in advance",
+            "Leading indicators are generated from synthetic scenario rules and are not bank observations",
+            "Forty percent of sudden suppliers intentionally retain no observable precursors",
             "Weeks after 44 are excluded from performance scoring because they contain no positive labels",
             "Formal API, business thresholds and rollback authority remain pending team review",
         ],
@@ -432,6 +469,7 @@ def train_all(
     _json_dump(report_dir / "candidate_model_metrics.json", results)
     _json_dump(report_dir / "candidate_model_metadata.json", candidate_metadata)
     _json_dump(report_dir / "candidate_shap_top_features.json", shap_records)
+    _json_dump(report_dir / "leading_indicator_ablation.json", leading_ablation)
 
     incumbent = _incumbent_metrics(model_dir, report_dir, test)
     candidate_test = results[champion_name]["test"]
@@ -452,4 +490,5 @@ def train_all(
         "candidate_metrics": results,
         "candidate_metadata": candidate_metadata,
         "promotion": registry_entry,
+        "leading_indicator_ablation": leading_ablation,
     }

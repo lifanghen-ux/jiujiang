@@ -1,0 +1,516 @@
+{
+  "$defs": {
+    "AuditEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "agent_name": {
+          "title": "Agent Name",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "timestamp": {
+          "title": "Timestamp",
+          "type": "string"
+        }
+      },
+      "required": [
+        "agent_name",
+        "status",
+        "detail",
+        "timestamp"
+      ],
+      "title": "AuditEntry",
+      "type": "object"
+    },
+    "CandidateAction": {
+      "additionalProperties": false,
+      "properties": {
+        "suggest_type": {
+          "enum": [
+            "rectify",
+            "observe",
+            "alert"
+          ],
+          "title": "Suggest Type",
+          "type": "string"
+        },
+        "suggest_content": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Suggest Content",
+          "type": "string"
+        },
+        "suggest_priority": {
+          "enum": [
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "title": "Suggest Priority",
+          "type": "string"
+        },
+        "execution_status": {
+          "const": "PENDING_HUMAN_REVIEW",
+          "default": "PENDING_HUMAN_REVIEW",
+          "title": "Execution Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "suggest_type",
+        "suggest_content",
+        "suggest_priority"
+      ],
+      "title": "CandidateAction",
+      "type": "object"
+    },
+    "EvidenceItem": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Evidence Id",
+          "type": "string"
+        },
+        "supplier_id": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Supplier Id",
+          "type": "string"
+        },
+        "event_category": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Event Category",
+          "type": "string"
+        },
+        "event_subtype": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Event Subtype",
+          "type": "string"
+        },
+        "event_severity": {
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Event Severity",
+          "type": "integer"
+        },
+        "event_week": {
+          "maximum": 52,
+          "minimum": 1,
+          "title": "Event Week",
+          "type": "integer"
+        },
+        "source_type": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Source Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence_id",
+        "supplier_id",
+        "event_category",
+        "event_subtype",
+        "event_severity",
+        "event_week",
+        "source_type"
+      ],
+      "title": "EvidenceItem",
+      "type": "object"
+    },
+    "EvidenceResult": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "PASS",
+            "FAIL"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "evidence_items": {
+          "items": {
+            "$ref": "#/$defs/EvidenceItem"
+          },
+          "maxItems": 50,
+          "title": "Evidence Items",
+          "type": "array"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "EvidenceResult",
+      "type": "object"
+    },
+    "GradualUpgradeComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "pred_upgrade_label": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Pred Upgrade Label",
+          "type": "integer"
+        },
+        "upgrade_probability": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Upgrade Probability",
+          "type": "number"
+        }
+      },
+      "required": [
+        "pred_upgrade_label",
+        "upgrade_probability"
+      ],
+      "title": "GradualUpgradeComponent",
+      "type": "object"
+    },
+    "PredictionResult": {
+      "additionalProperties": false,
+      "properties": {
+        "pred_upgrade_label": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Pred Upgrade Label",
+          "type": "integer"
+        },
+        "upgrade_probability": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Upgrade Probability",
+          "type": "number"
+        },
+        "model_version": {
+          "title": "Model Version",
+          "type": "string"
+        },
+        "model_status": {
+          "default": "MOCK",
+          "enum": [
+            "MOCK",
+            "UNTRAINED",
+            "TRAINED"
+          ],
+          "title": "Model Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pred_upgrade_label",
+        "upgrade_probability",
+        "model_version"
+      ],
+      "title": "PredictionResult",
+      "type": "object"
+    },
+    "PublicLLMAdvisory": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "SUCCESS",
+            "FALLBACK",
+            "DISABLED"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "provider": {
+          "title": "Provider",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "risk_summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Risk Summary"
+        },
+        "rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rationale"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "policy_chunk_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Policy Chunk Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status",
+        "provider"
+      ],
+      "title": "PublicLLMAdvisory",
+      "type": "object"
+    },
+    "RecoveryComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "rectify_active": {
+          "title": "Rectify Active",
+          "type": "boolean"
+        },
+        "improving": {
+          "title": "Improving",
+          "type": "boolean"
+        },
+        "risk_score_delta_1w": {
+          "title": "Risk Score Delta 1W",
+          "type": "number"
+        }
+      },
+      "required": [
+        "rectify_active",
+        "improving",
+        "risk_score_delta_1w"
+      ],
+      "title": "RecoveryComponent",
+      "type": "object"
+    },
+    "RiskComponents": {
+      "additionalProperties": false,
+      "properties": {
+        "risk_mode": {
+          "enum": [
+            "GRADUAL_WARNING",
+            "SUDDEN_CURRENT",
+            "RECOVERY",
+            "STABLE"
+          ],
+          "title": "Risk Mode",
+          "type": "string"
+        },
+        "gradual_upgrade": {
+          "$ref": "#/$defs/GradualUpgradeComponent"
+        },
+        "sudden_current": {
+          "$ref": "#/$defs/SuddenCurrentComponent"
+        },
+        "recovery": {
+          "$ref": "#/$defs/RecoveryComponent"
+        }
+      },
+      "required": [
+        "risk_mode",
+        "gradual_upgrade",
+        "sudden_current",
+        "recovery"
+      ],
+      "title": "RiskComponents",
+      "type": "object"
+    },
+    "SuddenCurrentComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "red_line_detected": {
+          "title": "Red Line Detected",
+          "type": "boolean"
+        },
+        "current_max_severity": {
+          "maximum": 5.0,
+          "minimum": 0.0,
+          "title": "Current Max Severity",
+          "type": "number"
+        },
+        "meaning": {
+          "title": "Meaning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "red_line_detected",
+        "current_max_severity",
+        "meaning"
+      ],
+      "title": "SuddenCurrentComponent",
+      "type": "object"
+    },
+    "TrendResult": {
+      "additionalProperties": false,
+      "properties": {
+        "trend_type": {
+          "enum": [
+            "RISING",
+            "STEADY",
+            "FALLING",
+            "SUDDEN_JUMP"
+          ],
+          "title": "Trend Type",
+          "type": "string"
+        },
+        "trend_desc": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Trend Desc",
+          "type": "string"
+        },
+        "trend_support_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Trend Support Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trend_type",
+        "trend_desc"
+      ],
+      "title": "TrendResult",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "C-DRAFT-V0.2",
+      "default": "C-DRAFT-V0.2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "run_id": {
+      "title": "Run Id",
+      "type": "string"
+    },
+    "supplier_id": {
+      "title": "Supplier Id",
+      "type": "string"
+    },
+    "current_week": {
+      "maximum": 52,
+      "minimum": 1,
+      "title": "Current Week",
+      "type": "integer"
+    },
+    "prediction": {
+      "$ref": "#/$defs/PredictionResult"
+    },
+    "prediction_source": {
+      "title": "Prediction Source",
+      "type": "string"
+    },
+    "risk_components": {
+      "$ref": "#/$defs/RiskComponents"
+    },
+    "risk_trend": {
+      "$ref": "#/$defs/TrendResult"
+    },
+    "evidence_result": {
+      "$ref": "#/$defs/EvidenceResult"
+    },
+    "llm_advisory": {
+      "$ref": "#/$defs/PublicLLMAdvisory"
+    },
+    "candidate_actions": {
+      "items": {
+        "$ref": "#/$defs/CandidateAction"
+      },
+      "title": "Candidate Actions",
+      "type": "array"
+    },
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "errors": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "audit_trace": {
+      "items": {
+        "$ref": "#/$defs/AuditEntry"
+      },
+      "title": "Audit Trace",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run_id",
+    "supplier_id",
+    "current_week",
+    "prediction",
+    "prediction_source",
+    "risk_components",
+    "risk_trend",
+    "evidence_result",
+    "llm_advisory",
+    "status"
+  ],
+  "title": "AssessmentOutput",
+  "type": "object"
+}

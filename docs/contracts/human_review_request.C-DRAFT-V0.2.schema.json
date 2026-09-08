@@ -1,0 +1,73 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "reviewer_id": {
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Reviewer Id",
+      "type": "string"
+    },
+    "review_result": {
+      "enum": [
+        "APPROVED",
+        "REJECTED",
+        "NEED_MORE_EVIDENCE"
+      ],
+      "title": "Review Result",
+      "type": "string"
+    },
+    "final_action": {
+      "anyOf": [
+        {
+          "enum": [
+            "observe",
+            "alert",
+            "rectify"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Final Action"
+    },
+    "review_comment": {
+      "default": "",
+      "maxLength": 1000,
+      "title": "Review Comment",
+      "type": "string"
+    },
+    "actual_outcome": {
+      "default": "UNKNOWN",
+      "enum": [
+        "RISK_OCCURRED",
+        "NO_RISK",
+        "UNKNOWN"
+      ],
+      "title": "Actual Outcome",
+      "type": "string"
+    },
+    "outcome_week": {
+      "anyOf": [
+        {
+          "maximum": 52,
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Outcome Week"
+    }
+  },
+  "required": [
+    "reviewer_id",
+    "review_result"
+  ],
+  "title": "HumanReviewRequest",
+  "type": "object"
+}

@@ -20,6 +20,8 @@ def test_full_source_data_passes_integrity_checks() -> None:
     assert report["status"] == "PASS"
     assert report["row_counts"]["weekly_snapshot.csv"] == 10_400
     assert report["duplicate_counts"]["supplier_week"] == 0
+    assert report["leading_indicators"]["status"] == "PASS_SIMULATED"
+    assert report["leading_indicators"]["rows"] == 10_400
     assert sum(report["foreign_key_error_counts"].values()) == 0
     assert sum(report["calculation_mismatches"].values()) == 0
 
@@ -30,6 +32,7 @@ def test_feature_frame_and_temporal_split_are_model_ready() -> None:
 
     assert len(frame) == 10_400
     assert frame[FEATURE_COLUMNS].isna().sum().sum() == 0
+    assert len(FEATURE_COLUMNS) == 40
     assert train["week"].max() < validation["week"].min()
     assert validation["week"].max() < test["week"].min()
     assert train["upgrade_label"].sum() == 136

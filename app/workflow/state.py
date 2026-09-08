@@ -4,6 +4,7 @@ from typing import Annotated, Any, TypedDict
 
 class WorkflowState(TypedDict, total=False):
     run_id: str
+    output_schema_version: str
     supplier_id: str
     current_week: int
     events: list[dict[str, Any]]

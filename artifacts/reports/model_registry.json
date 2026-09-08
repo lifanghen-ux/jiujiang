@@ -106,5 +106,60 @@
     "rollback_shap_csv_path": "artifacts\\reports\\rollback\\shap_global_20260908T022807Z.csv",
     "rollback_shap_json_path": "artifacts\\reports\\rollback\\shap_top_features_20260908T022807Z.json",
     "rollback_status": "AVAILABLE"
+  },
+  {
+    "version": "20260908T062732Z",
+    "created_at": "2026-09-08T06:27:32.461301+00:00",
+    "candidate_model": "random_forest",
+    "status": "PROMOTED",
+    "promotion_gates": {
+      "pr_auc_not_materially_worse": true,
+      "recall_not_materially_worse": true,
+      "precision_at_least_80_percent_of_incumbent": true
+    },
+    "candidate_test": {
+      "threshold": 0.3,
+      "precision": 0.7,
+      "recall": 0.7,
+      "f1": 0.7,
+      "f2": 0.7,
+      "alert_rate": 0.02,
+      "brier_score": 0.0077893532724314365,
+      "roc_auc": 0.9213839285714286,
+      "pr_auc": 0.7296813039622123,
+      "confusion_matrix": {
+        "tn": 1948,
+        "fp": 12,
+        "fn": 12,
+        "tp": 28
+      },
+      "rows": 2000,
+      "positive_rows": 40
+    },
+    "incumbent_test": {
+      "threshold": 0.28,
+      "precision": 0.17857142857142858,
+      "recall": 0.25,
+      "f1": 0.20833333333333334,
+      "f2": 0.23148148148148148,
+      "alert_rate": 0.028,
+      "brier_score": 0.02231156063560983,
+      "roc_auc": 0.6517729591836736,
+      "pr_auc": 0.08579798139267679,
+      "confusion_matrix": {
+        "tn": 1914,
+        "fp": 46,
+        "fn": 30,
+        "tp": 10
+      },
+      "rows": 2000,
+      "positive_rows": 40
+    },
+    "rollback_model_path": "artifacts\\models\\rollback\\champion_20260908T062732Z.joblib",
+    "rollback_metadata_path": "artifacts\\reports\\rollback\\model_metadata_20260908T062732Z.json",
+    "rollback_metrics_path": "artifacts\\reports\\rollback\\model_metrics_20260908T062732Z.json",
+    "rollback_shap_csv_path": "artifacts\\reports\\rollback\\shap_global_20260908T062732Z.csv",
+    "rollback_shap_json_path": "artifacts\\reports\\rollback\\shap_top_features_20260908T062732Z.json",
+    "rollback_status": "AVAILABLE"
   }
 ]

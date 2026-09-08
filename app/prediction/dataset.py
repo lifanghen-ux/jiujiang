@@ -40,7 +40,21 @@ SOURCE_SCHEMAS = {
     ],
 }
 
-FEATURE_COLUMNS = [
+LEADING_INDICATOR_SCHEMA = [
+    "supplier_id",
+    "week",
+    "sla_compliance_rate",
+    "overdue_days",
+    "critical_staff_turnover_rate",
+    "unresolved_ticket_count",
+    "system_availability_rate",
+    "complaint_count",
+    "negative_sentiment_count",
+    "is_simulated",
+    "simulation_version",
+]
+
+BASE_FEATURE_COLUMNS = [
     "risk_score",
     "event_count_1w",
     "event_count_4w",
@@ -75,6 +89,19 @@ FEATURE_COLUMNS = [
     "category_sentiment_4w",
 ]
 
+LEADING_FEATURE_COLUMNS = [
+    "leading_indicators_available",
+    "sla_compliance_rate",
+    "overdue_days",
+    "critical_staff_turnover_rate",
+    "unresolved_ticket_count",
+    "system_availability_rate",
+    "complaint_count",
+    "negative_sentiment_count",
+]
+
+FEATURE_COLUMNS = [*BASE_FEATURE_COLUMNS, *LEADING_FEATURE_COLUMNS]
+
 CATEGORY_FEATURES = {
     "履约": "category_performance_4w",
     "人员": "category_personnel_4w",
@@ -97,6 +124,15 @@ def load_source_tables(source_dir: Path) -> dict[str, pd.DataFrame]:
                 f"{filename} columns differ: expected={expected_columns}, actual={frame.columns.tolist()}"
             )
         tables[filename] = frame
+    leading_path = source_dir / "leading_indicators.csv"
+    if leading_path.exists():
+        leading = pd.read_csv(leading_path, encoding="utf-8-sig")
+        if leading.columns.tolist() != LEADING_INDICATOR_SCHEMA:
+            raise DataValidationError(
+                "leading_indicators.csv columns differ: "
+                f"expected={LEADING_INDICATOR_SCHEMA}, actual={leading.columns.tolist()}"
+            )
+        tables["leading_indicators.csv"] = leading
     return tables
 
 
@@ -112,6 +148,7 @@ def validate_source_tables(tables: dict[str, pd.DataFrame]) -> dict:
     events = tables["risk_events.csv"]
     rectifies = tables["rectify_records.csv"]
     weekly = tables["weekly_snapshot.csv"].copy()
+    leading = tables.get("leading_indicators.csv")
 
     duplicate_counts = {
         "supplier_id": _duplicate_count(suppliers, ["supplier_id"]),
@@ -125,6 +162,12 @@ def validate_source_tables(tables: dict[str, pd.DataFrame]) -> dict:
     if any(duplicate_counts.values()):
         raise DataValidationError(f"Duplicate keys detected: {duplicate_counts}")
 
+    if leading is not None:
+        leading = leading.copy()
+        duplicate_counts["leading_supplier_week"] = _duplicate_count(leading, ["supplier_id", "week"])
+        if duplicate_counts["leading_supplier_week"]:
+            raise DataValidationError("Duplicate supplier/week keys detected in leading_indicators.csv")
+
     supplier_ids = set(suppliers["supplier_id"])
     foreign_key_errors = {
         "contracts.supplier_id": sorted(set(contracts["supplier_id"]) - supplier_ids),
@@ -136,6 +179,12 @@ def validate_source_tables(tables: dict[str, pd.DataFrame]) -> dict:
     }
     if any(foreign_key_errors.values()):
         raise DataValidationError(f"Broken foreign keys detected: {foreign_key_errors}")
+
+    if leading is not None:
+        leading_supplier_errors = sorted(set(leading["supplier_id"]) - supplier_ids)
+        foreign_key_errors["leading.supplier_id"] = leading_supplier_errors
+        if leading_supplier_errors:
+            raise DataValidationError(f"Broken leading indicator supplier IDs: {leading_supplier_errors}")
 
     weekly["week"] = weekly["week"].astype(int)
     weekly["upgrade_label"] = weekly["upgrade_label"].astype(int)
@@ -154,6 +203,37 @@ def validate_source_tables(tables: dict[str, pd.DataFrame]) -> dict:
     if not weekly["upgrade_label"].isin([0, 1]).all():
         raise DataValidationError("upgrade_label must be binary")
 
+    leading_summary = {"status": "NOT_PROVIDED", "rows": 0}
+    if leading is not None:
+        leading["week"] = leading["week"].astype(int)
+        leading_counts = leading.groupby("supplier_id")["week"].nunique()
+        if len(leading_counts) != len(suppliers) or not leading_counts.eq(52).all():
+            raise DataValidationError("leading_indicators.csv must contain 52 unique weeks per supplier")
+        if len(leading) != len(weekly) or not leading["week"].between(1, 52).all():
+            raise DataValidationError("leading_indicators.csv must align to all 10,400 supplier/week rows")
+        rate_columns = [
+            "sla_compliance_rate",
+            "critical_staff_turnover_rate",
+            "system_availability_rate",
+        ]
+        if not all(leading[column].astype(float).between(0, 1).all() for column in rate_columns):
+            raise DataValidationError("Leading indicator rates must be within 0..1")
+        count_columns = [
+            "overdue_days",
+            "unresolved_ticket_count",
+            "complaint_count",
+            "negative_sentiment_count",
+        ]
+        if not all((leading[column].astype(float) >= 0).all() for column in count_columns):
+            raise DataValidationError("Leading indicator counts must be non-negative")
+        if not leading["is_simulated"].astype(str).str.lower().eq("true").all():
+            raise DataValidationError("Current leading indicator experiment must be marked is_simulated=true")
+        leading_summary = {
+            "status": "PASS_SIMULATED",
+            "rows": int(len(leading)),
+            "simulation_versions": sorted(leading["simulation_version"].astype(str).unique().tolist()),
+        }
+
     consistency = recompute_consistency(tables)
     if any(consistency.values()):
         raise DataValidationError(f"Source calculations are inconsistent: {consistency}")
@@ -169,6 +249,7 @@ def validate_source_tables(tables: dict[str, pd.DataFrame]) -> dict:
         "positive_rate": float(weekly["upgrade_label"].mean()),
         "event_categories": sorted(events["event_category"].unique().tolist()),
         "calculation_mismatches": consistency,
+        "leading_indicators": leading_summary,
     }
 
 
@@ -221,6 +302,7 @@ def build_feature_frame(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
     projects = tables["projects.csv"].copy()
     systems = tables["bank_systems.csv"].copy()
     rectifies = tables["rectify_records.csv"].copy()
+    leading = tables.get("leading_indicators.csv")
     weekly["week"] = weekly["week"].astype(int)
     weekly["event_count"] = weekly["event_count"].astype(float)
     weekly["risk_score"] = weekly["risk_score"].astype(float)
@@ -353,6 +435,29 @@ def build_feature_frame(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
     timing = frame.apply(_rectify_timing, axis=1, result_type="expand")
     frame["rectify_weeks_elapsed"] = timing[0]
     frame["rectify_weeks_remaining"] = timing[1]
+
+    leading_defaults = {
+        "sla_compliance_rate": 1.0,
+        "overdue_days": 0.0,
+        "critical_staff_turnover_rate": 0.0,
+        "unresolved_ticket_count": 0.0,
+        "system_availability_rate": 1.0,
+        "complaint_count": 0.0,
+        "negative_sentiment_count": 0.0,
+    }
+    if leading is None:
+        frame["leading_indicators_available"] = 0.0
+        for column, default in leading_defaults.items():
+            frame[column] = default
+    else:
+        numeric_leading = leading[["supplier_id", "week", *leading_defaults]].copy()
+        numeric_leading["week"] = numeric_leading["week"].astype(int)
+        for column in leading_defaults:
+            numeric_leading[column] = numeric_leading[column].astype(float)
+        frame = frame.merge(numeric_leading, on=["supplier_id", "week"], how="left", validate="one_to_one")
+        if frame[list(leading_defaults)].isna().any().any():
+            raise DataValidationError("Leading indicators do not cover every supplier/week row")
+        frame["leading_indicators_available"] = 1.0
 
     return frame[["supplier_id", "week", *FEATURE_COLUMNS, "upgrade_label"]].copy()
 

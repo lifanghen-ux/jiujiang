@@ -7,7 +7,8 @@
     "bank_systems.csv": 200,
     "risk_events.csv": 539,
     "rectify_records.csv": 40,
-    "weekly_snapshot.csv": 10400
+    "weekly_snapshot.csv": 10400,
+    "leading_indicators.csv": 10400
   },
   "duplicate_counts": {
     "supplier_id": 0,
@@ -16,7 +17,8 @@
     "system_id": 0,
     "evidence_id": 0,
     "rectify_id": 0,
-    "supplier_week": 0
+    "supplier_week": 0,
+    "leading_supplier_week": 0
   },
   "foreign_key_error_counts": {
     "contracts.supplier_id": 0,
@@ -24,7 +26,8 @@
     "rectifies.supplier_id": 0,
     "weekly.supplier_id": 0,
     "projects.contract_id": 0,
-    "systems.project_id": 0
+    "systems.project_id": 0,
+    "leading.supplier_id": 0
   },
   "weekly_rows_per_supplier": [
     52
@@ -47,5 +50,12 @@
     "risk_score": 0,
     "has_rectify": 0,
     "upgrade_label": 0
+  },
+  "leading_indicators": {
+    "status": "PASS_SIMULATED",
+    "rows": 10400,
+    "simulation_versions": [
+      "LEADING-SIM-V0.1"
+    ]
   }
 }
