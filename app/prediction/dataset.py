@@ -45,7 +45,12 @@ FEATURE_COLUMNS = [
     "event_count_1w",
     "event_count_4w",
     "event_count_8w",
+    "event_count_lifetime",
+    "event_count_acceleration_4w",
+    "severity_max_1w",
     "severity_sum_4w",
+    "severity_sum_8w",
+    "severity_sum_lifetime",
     "severity_max_4w",
     "high_severity_count_4w",
     "risk_score_delta_1w",
@@ -56,8 +61,28 @@ FEATURE_COLUMNS = [
     "cross_category_count_4w",
     "weeks_since_last_event",
     "has_rectify",
+    "rectify_weeks_elapsed",
+    "rectify_weeks_remaining",
     "business_exposure",
+    "system_level_score",
+    "contract_importance_score",
+    "project_stage_code",
+    "category_performance_4w",
+    "category_personnel_4w",
+    "category_security_4w",
+    "category_operation_4w",
+    "category_compliance_4w",
+    "category_sentiment_4w",
 ]
+
+CATEGORY_FEATURES = {
+    "履约": "category_performance_4w",
+    "人员": "category_personnel_4w",
+    "安全": "category_security_4w",
+    "经营": "category_operation_4w",
+    "合规": "category_compliance_4w",
+    "舆情": "category_sentiment_4w",
+}
 
 
 def load_source_tables(source_dir: Path) -> dict[str, pd.DataFrame]:
@@ -192,6 +217,10 @@ def _rolling_slope(values: np.ndarray) -> float:
 def build_feature_frame(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
     weekly = tables["weekly_snapshot.csv"].copy()
     events = tables["risk_events.csv"].copy()
+    contracts = tables["contracts.csv"].copy()
+    projects = tables["projects.csv"].copy()
+    systems = tables["bank_systems.csv"].copy()
+    rectifies = tables["rectify_records.csv"].copy()
     weekly["week"] = weekly["week"].astype(int)
     weekly["event_count"] = weekly["event_count"].astype(float)
     weekly["risk_score"] = weekly["risk_score"].astype(float)
@@ -216,15 +245,25 @@ def build_feature_frame(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
         ["severity_sum", "severity_max", "high_severity_count"]
     ].fillna(0.0)
     frame["event_count_1w"] = frame["event_count"]
+    frame["severity_max_1w"] = frame["severity_max"]
 
     grouped = frame.groupby("supplier_id", group_keys=False, sort=False)
     for window in (4, 8):
         frame[f"event_count_{window}w"] = grouped["event_count"].transform(
             lambda values: values.rolling(window, min_periods=1).sum()
         )
+    frame["event_count_lifetime"] = grouped["event_count"].cumsum()
+    previous_4w = grouped["event_count"].transform(
+        lambda values: values.shift(4).rolling(4, min_periods=1).sum().fillna(0.0)
+    )
+    frame["event_count_acceleration_4w"] = frame["event_count_4w"] - previous_4w
     frame["severity_sum_4w"] = grouped["severity_sum"].transform(
         lambda values: values.rolling(4, min_periods=1).sum()
     )
+    frame["severity_sum_8w"] = grouped["severity_sum"].transform(
+        lambda values: values.rolling(8, min_periods=1).sum()
+    )
+    frame["severity_sum_lifetime"] = grouped["severity_sum"].cumsum()
     frame["severity_max_4w"] = grouped["severity_max"].transform(
         lambda values: values.rolling(4, min_periods=1).max()
     )
@@ -263,12 +302,76 @@ def build_feature_frame(tables: dict[str, pd.DataFrame]) -> pd.DataFrame:
         category_active.append(active)
     frame["category_count_4w"] = pd.concat(category_active, axis=1).sum(axis=1)
     frame["cross_category_count_4w"] = (frame["category_count_4w"] - 1).clip(lower=0)
+    for category, feature_name in CATEGORY_FEATURES.items():
+        if category in categories:
+            frame[feature_name] = frame.groupby("supplier_id", group_keys=False)[category].transform(
+                lambda values: values.rolling(4, min_periods=1).sum()
+            )
+        else:
+            frame[feature_name] = 0.0
 
     frame["last_event_week"] = frame["week"].where(frame["event_count"] > 0)
     frame["last_event_week"] = frame.groupby("supplier_id")["last_event_week"].ffill()
     frame["weeks_since_last_event"] = (frame["week"] - frame["last_event_week"]).fillna(53).astype(float)
 
+    static = (
+        contracts[["contract_id", "supplier_id", "contract_importance"]]
+        .merge(projects, on="contract_id", how="left")
+        .merge(systems[["project_id", "system_level"]], on="project_id", how="left")
+    )
+    static["system_level_score"] = static["system_level"].map({"一般": 1.0, "重要": 2.0, "核心": 3.0})
+    static["contract_importance_score"] = static["contract_importance"].map({"一般外包": 1.0, "重要外包": 2.0})
+    static["project_stage_code"] = static["project_stage"].map({"开发中": 0.0, "上线运维": 1.0})
+    frame = frame.merge(
+        static[
+            [
+                "supplier_id",
+                "system_level_score",
+                "contract_importance_score",
+                "project_stage_code",
+            ]
+        ],
+        on="supplier_id",
+        how="left",
+    )
+    for column in ("system_level_score", "contract_importance_score", "project_stage_code"):
+        frame[column] = frame[column].fillna(0.0)
+
+    rectifies["start_week"] = rectifies["start_week"].astype(int)
+    rectifies["end_week"] = rectifies["end_week"].astype(int)
+    rectify_ranges = {
+        supplier_id: list(group[["start_week", "end_week"]].itertuples(index=False, name=None))
+        for supplier_id, group in rectifies.groupby("supplier_id")
+    }
+
+    def _rectify_timing(row: pd.Series) -> tuple[float, float]:
+        for start_week, end_week in rectify_ranges.get(row["supplier_id"], []):
+            if start_week <= int(row["week"]) <= end_week:
+                return float(int(row["week"]) - start_week + 1), float(end_week - int(row["week"]))
+        return 0.0, 0.0
+
+    timing = frame.apply(_rectify_timing, axis=1, result_type="expand")
+    frame["rectify_weeks_elapsed"] = timing[0]
+    frame["rectify_weeks_remaining"] = timing[1]
+
     return frame[["supplier_id", "week", *FEATURE_COLUMNS, "upgrade_label"]].copy()
+
+
+def rolling_origin_splits(
+    frame: pd.DataFrame,
+    *,
+    folds: tuple[tuple[int, int, int], ...] = ((22, 23, 26), (26, 27, 30), (30, 31, 34)),
+) -> list[tuple[str, pd.DataFrame, pd.DataFrame]]:
+    result: list[tuple[str, pd.DataFrame, pd.DataFrame]] = []
+    for train_end, validation_start, validation_end in folds:
+        train = frame[frame["week"] <= train_end].copy()
+        validation = frame[frame["week"].between(validation_start, validation_end)].copy()
+        if train["upgrade_label"].nunique() < 2 or validation["upgrade_label"].nunique() < 2:
+            raise DataValidationError(
+                f"Rolling fold {train_end}/{validation_start}-{validation_end} must contain both classes"
+            )
+        result.append((f"train_1_{train_end}__validate_{validation_start}_{validation_end}", train, validation))
+    return result
 
 
 def temporal_split(
@@ -288,4 +391,3 @@ def temporal_split(
         if part["upgrade_label"].nunique() < 2:
             raise DataValidationError(f"{name} split must contain both label classes")
     return train, validation, test, tail
-

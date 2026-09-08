@@ -47,3 +47,34 @@ class TrainedPredictionService:
             model_version=f"{self.metadata['champion_model']}-simulation-v0.1",
             model_status="TRAINED",
         )
+
+    def risk_components(self, features: dict[str, float], prediction: PredictionResult) -> dict:
+        current_max_severity = float(features.get("severity_max_1w", 0.0))
+        rectify_active = bool(float(features.get("has_rectify", 0.0)) >= 0.5)
+        improving = rectify_active and float(features.get("risk_score_delta_1w", 0.0)) < 0
+        red_line = current_max_severity >= 4.0
+        if red_line:
+            mode = "SUDDEN_CURRENT"
+        elif improving:
+            mode = "RECOVERY"
+        elif prediction.pred_upgrade_label:
+            mode = "GRADUAL_WARNING"
+        else:
+            mode = "STABLE"
+        return {
+            "risk_mode": mode,
+            "gradual_upgrade": {
+                "pred_upgrade_label": prediction.pred_upgrade_label,
+                "upgrade_probability": prediction.upgrade_probability,
+            },
+            "sudden_current": {
+                "red_line_detected": red_line,
+                "current_max_severity": current_max_severity,
+                "meaning": "当周红线检测，不代表提前预测",
+            },
+            "recovery": {
+                "rectify_active": rectify_active,
+                "improving": improving,
+                "risk_score_delta_1w": float(features.get("risk_score_delta_1w", 0.0)),
+            },
+        }

@@ -42,3 +42,10 @@ class CandidateAction(StrictModel):
     suggest_priority: Literal["HIGH", "MEDIUM", "LOW"]
     execution_status: Literal["PENDING_HUMAN_REVIEW"] = "PENDING_HUMAN_REVIEW"
 
+
+class AdvisoryResult(StrictModel):
+    risk_summary: str = Field(min_length=1, max_length=500)
+    rationale: str = Field(min_length=1, max_length=1000)
+    evidence_ids: list[str] = Field(default_factory=list, max_length=20)
+    policy_chunk_ids: list[str] = Field(default_factory=list, max_length=10)
+    candidate_actions: list[CandidateAction] = Field(min_length=1, max_length=5)

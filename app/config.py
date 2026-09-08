@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = Field(default=30.0, gt=0)
     llm_max_retries: int = Field(default=2, ge=0, le=5)
     max_output_chars: int = Field(default=8000, ge=100, le=100000)
+    rag_top_k: int = Field(default=3, ge=1, le=10)
     knowledge_dir: Path = Path("data/knowledge")
     vector_index_path: Path = Path("data/index/vector_index.json")
     source_data_dir: Path = Path("data/source")

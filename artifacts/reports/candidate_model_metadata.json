@@ -78,7 +78,7 @@
   "calibration": "isotonic_on_pooled_rolling_out_of_time_predictions",
   "champion_model": "xgboost",
   "champion_threshold": 0.28,
-  "model_status": "PROMOTED_SIMULATION",
+  "model_status": "CANDIDATE_SIMULATION",
   "risk_separation": {
     "gradual_upgrade": "machine-learning probability for the next three weeks",
     "sudden_current": "same-week severity red-line rule; not claimed as advance prediction",

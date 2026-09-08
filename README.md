@@ -5,17 +5,19 @@
 - LangGraph 多 Agent 协同流程；
 - 大模型统一调用、结构化输出校验、重试与 fallback；
 - RAG 文档加载、切分、索引与可追溯检索；
-- 未来 3 周风险升级标签、16 项特征工程和三类基线模型；
+- 未来 3 周风险升级标签、32 项历史特征和三类候选模型；
 - 200 家模拟供应商数据的质量检查、SHAP 全局解释；
-- Mock 与训练模型两条端到端演示链路及单元测试。
+- 滚动时间验证、概率校准、候选晋级及一键回滚；
+- Mock、训练模型、训练模型 + DeepSeek 三条端到端演示链路及单元测试。
 
-> 当前状态：`DRAFT / SIMULATED / TRAINED_BASELINE`。训练使用虚构模拟数据，后段测试效果尚未达到可用标准；接口与安全规则仍待团队评审，系统不输出可自动执行的正式处置决策。
+> 当前状态：`DRAFT / SIMULATED / PROMOTED_CANDIDATE`。训练使用虚构模拟数据；真实 DeepSeek 已完成技术联通，但正式银行数据、制度授权、接口与安全规则仍待复核，系统不输出可自动执行的正式处置决策。
 
 ## 1. 当前边界
 
 可运行部分：
 
 - Coordinator、Risk Identification、Association Analysis、Dynamic Prediction、Evidence、Decision、Human Review 节点；
+- Evidence 通过后检索已批准制度片段，再由 Decision Agent 形成有出处的候选建议；
 - mock LLM，以及 mock/训练模型自动切换；
 - JSON/Pydantic 校验与错误状态；
 - Evidence FAIL 阻断 Decision Agent；
@@ -23,6 +25,8 @@
 - 标签窗口、工作流门禁和结构化输出测试；
 - 全量 7 张 CSV 的主键、外键、重复值及标签重算校验；
 - 严格按时间先后训练、验证、测试，避免用未来数据训练过去。
+- 将“未来三周渐进升级预测、当周突发红线、整改恢复”分开处理；
+- 新模型未通过 PR-AUC、召回率和准确率门槛时不替换旧模型，并保留回滚快照。
 
 待成员 B 或赵文雅复核后再固化：
 
@@ -52,7 +56,7 @@ python -m pytest
 python -m pip install -e ".[ml,docs,dev]"
 ```
 
-默认 `LLM_PROVIDER=mock`，无需 API Key。切换真实模型前必须通过团队的模型、数据和日志安全复核。
+默认 `LLM_PROVIDER=mock`，无需 API Key。`.env` 可配置 DeepSeek，但不得提交密钥；正式银行数据进入真实模型前必须通过模型、数据和日志安全复核。
 
 ## 3. 命令
 
@@ -71,6 +75,12 @@ python -m app.main train
 
 # 让训练模型接入多 Agent 流程（须先执行 train）
 python -m app.main real-data-demo
+
+# 让训练模型、RAG 和真实 LLM 接入同一条流程（须在 .env 配置）
+python -m app.main real-data-demo-live
+
+# 恢复最近一次晋级前的模型、指标和 SHAP 解释
+python -m app.main rollback-model
 
 # 执行测试
 python -m pytest

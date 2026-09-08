@@ -15,7 +15,7 @@ def load_mock_events(path: Path = Path("data/mock/risk_events.csv")) -> list[dic
     return rows
 
 
-def run_demo(*, current_week: int = 10, include_events: bool = True) -> dict:
+def run_demo(*, current_week: int = 10, include_events: bool = True, enable_live_llm: bool = False) -> dict:
     workflow = build_workflow()
     return workflow.invoke(
         {
@@ -24,6 +24,7 @@ def run_demo(*, current_week: int = 10, include_events: bool = True) -> dict:
             "current_week": current_week,
             "events": load_mock_events() if include_events else [],
             "business_context": {"risk_score": 5.0, "business_exposure": 0.80},
+            "enable_live_llm": enable_live_llm,
             "status": "CREATED",
             "errors": [],
             "audit_trace": [],
@@ -35,6 +36,7 @@ def run_real_data_demo(
     *,
     source_dir: Path = Path("data/source"),
     feature_path: Path = Path("artifacts/features/model_features.csv"),
+    enable_live_llm: bool = False,
 ) -> dict:
     import pandas as pd
 
@@ -67,6 +69,7 @@ def run_real_data_demo(
                 "business_exposure": float(selected.business_exposure),
             },
             "model_features": {name: float(getattr(selected, name)) for name in FEATURE_COLUMNS},
+            "enable_live_llm": enable_live_llm,
             "status": "CREATED",
             "errors": [],
             "audit_trace": [],

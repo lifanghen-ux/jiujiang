@@ -21,6 +21,7 @@ def dynamic_prediction_node(state: dict) -> dict:
         prediction = service.predict_features(model_features)
         prediction_source = "TRAINED_SIMULATION_MODEL"
         features = {name: float(model_features[name]) for name in service.feature_columns}
+        risk_components = service.risk_components(features, prediction)
     else:
         service = MockPredictionService(model_version="mock-untrained")
         prediction = service.predict(
@@ -29,9 +30,21 @@ def dynamic_prediction_node(state: dict) -> dict:
             business_exposure=float(context.get("business_exposure", 0.0)),
         )
         prediction_source = "MOCK_FALLBACK"
+        risk_components = {
+            "risk_mode": "GRADUAL_WARNING" if prediction.pred_upgrade_label else "STABLE",
+            "gradual_upgrade": prediction.model_dump(),
+            "sudden_current": {"red_line_detected": False, "meaning": "Mock 模式不执行红线检测"},
+            "recovery": {"rectify_active": False, "improving": False},
+        }
     evidence_ids = [event["evidence_id"] for event in visible[-5:]]
+    trend_type = {
+        "SUDDEN_CURRENT": "SUDDEN_JUMP",
+        "RECOVERY": "FALLING",
+        "GRADUAL_WARNING": "RISING",
+        "STABLE": "STEADY",
+    }[risk_components["risk_mode"]]
     trend = TrendResult(
-        trend_type="RISING" if prediction.pred_upgrade_label else "STEADY",
+        trend_type=trend_type,
         trend_desc=(
             "模拟数据训练模型给出的测试趋势，不代表正式研判。"
             if prediction_source == "TRAINED_SIMULATION_MODEL"
@@ -43,6 +56,7 @@ def dynamic_prediction_node(state: dict) -> dict:
         "features": features,
         "prediction": prediction.model_dump(),
         "prediction_source": prediction_source,
+        "risk_components": risk_components,
         "risk_trend": trend.model_dump(),
         "audit_trace": trace("DynamicPredictionAgent", "PASS", detail=f"prediction_source={prediction_source}"),
     }

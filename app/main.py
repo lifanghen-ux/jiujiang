@@ -30,8 +30,14 @@ def command_rag_demo() -> None:
     settings = get_settings()
     service = RAGService(settings.vector_index_path)
     path = settings.knowledge_dir / "mock_policy.md"
-    count = service.index_file(path, approved=False)
-    _print({"indexed_chunks": count, "results": service.search("证据失败后能否处置", top_k=2)})
+    count = service.rebuild([(path, True)])
+    _print(
+        {
+            "indexed_chunks": count,
+            "mode": "APPROVED_SIMULATION_ONLY",
+            "results": service.search("证据失败后能否处置", top_k=2, approved_only=True),
+        }
+    )
 
 
 def command_label_demo() -> None:
@@ -47,6 +53,12 @@ def command_train() -> None:
     _print(train_all(source_dir=settings.source_data_dir))
 
 
+def command_rollback_model() -> None:
+    from app.prediction.training import rollback_latest
+
+    _print(rollback_latest())
+
+
 def command_real_data_demo() -> None:
     settings = get_settings()
     result = run_real_data_demo(source_dir=settings.source_data_dir)
@@ -58,11 +70,30 @@ def command_real_data_demo() -> None:
     _print(public_result)
 
 
+def command_real_data_demo_live() -> None:
+    settings = get_settings()
+    result = run_real_data_demo(source_dir=settings.source_data_dir, enable_live_llm=True)
+    public_result = {
+        key: value
+        for key, value in result.items()
+        if key not in {"events", "visible_events", "business_context", "model_features", "policy_context"}
+    }
+    _print(public_result)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Jiujiang multi-agent skeleton")
     parser.add_argument(
         "command",
-        choices=("demo", "rag-demo", "label-demo", "train", "real-data-demo"),
+        choices=(
+            "demo",
+            "rag-demo",
+            "label-demo",
+            "train",
+            "rollback-model",
+            "real-data-demo",
+            "real-data-demo-live",
+        ),
         nargs="?",
         default="demo",
     )
@@ -74,7 +105,9 @@ def main() -> None:
         "rag-demo": command_rag_demo,
         "label-demo": command_label_demo,
         "train": command_train,
+        "rollback-model": command_rollback_model,
         "real-data-demo": command_real_data_demo,
+        "real-data-demo-live": command_real_data_demo_live,
     }[args.command]()
 
 

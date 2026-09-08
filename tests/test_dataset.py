@@ -4,6 +4,7 @@ from app.prediction.dataset import (
     FEATURE_COLUMNS,
     build_feature_frame,
     load_source_tables,
+    rolling_origin_splits,
     temporal_split,
     validate_source_tables,
 )
@@ -34,3 +35,14 @@ def test_feature_frame_and_temporal_split_are_model_ready() -> None:
     assert train["upgrade_label"].sum() == 136
     assert validation["upgrade_label"].sum() == 94
     assert test["upgrade_label"].sum() == 40
+
+
+def test_rolling_origin_splits_preserve_time_order() -> None:
+    frame = build_feature_frame(load_source_tables(SOURCE_DIR))
+    folds = rolling_origin_splits(frame)
+
+    assert len(folds) == 3
+    for _name, train, validation in folds:
+        assert train["week"].max() < validation["week"].min()
+        assert train["upgrade_label"].nunique() == 2
+        assert validation["upgrade_label"].nunique() == 2

@@ -9,13 +9,24 @@ class RAGService:
         self.store = LocalVectorStore(index_path)
 
     def index_file(self, path: Path, *, approved: bool = False) -> int:
+        self.store.load()
         text, metadata = load_document(path, approved=approved)
         chunks = split_document(text, metadata)
         self.store.add(chunks)
         self.store.save()
         return len(chunks)
 
+    def rebuild(self, documents: list[tuple[Path, bool]]) -> int:
+        self.store.records = []
+        count = 0
+        for path, approved in documents:
+            text, metadata = load_document(path, approved=approved)
+            chunks = split_document(text, metadata)
+            self.store.add(chunks)
+            count += len(chunks)
+        self.store.save()
+        return count
+
     def search(self, query: str, *, top_k: int = 3, approved_only: bool = False) -> list[dict]:
         self.store.load()
         return self.store.search(query, top_k=top_k, approved_only=approved_only)
-

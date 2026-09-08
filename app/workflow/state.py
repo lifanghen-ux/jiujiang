@@ -14,8 +14,12 @@ class WorkflowState(TypedDict, total=False):
     model_features: dict[str, float]
     prediction: dict[str, Any]
     prediction_source: str
+    risk_components: dict[str, Any]
     risk_trend: dict[str, Any]
     evidence_result: dict[str, Any]
+    policy_context: list[dict[str, Any]]
+    enable_live_llm: bool
+    llm_advisory: dict[str, Any]
     candidate_actions: list[dict[str, Any]]
     status: str
     errors: Annotated[list[str], operator.add]

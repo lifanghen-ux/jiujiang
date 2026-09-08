@@ -12,3 +12,4 @@ artifacts/models/*
 !artifacts/models/.gitkeep
 artifacts/features/*
 !artifacts/features/.gitkeep
+artifacts/reports/rollback/
